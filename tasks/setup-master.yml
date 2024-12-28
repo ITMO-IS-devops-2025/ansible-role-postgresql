@@ -1,0 +1,15 @@
+- name: Change postgres user password
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+  community.postgresql.postgresql_user:
+    name: "{{ postgresql_postgres_user }}"
+    password: "{{ __postgresql_postgres_db_user_password }}"
+
+- name: Add replicas ip addresses to pg_hba for replication
+  ansible.builtin.include_tasks:
+    file: add-replication-ip-to-pg-hba.yml
+  with_list: "{{ groups[postgresql_db_replicas_group_name] }}"
+
+- name: Add replication parameters to configuration file
+  ansible.builtin.include_tasks:
+    file: add-replication-params-to-postgresql-conf.yml

@@ -1,0 +1,10 @@
+- name: Add ip addresses to pg_hba.conf for replication
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ __postgresql_pg_hba_file_path }}"
+    contype: host
+    databases: replication
+    users: "{{ postgresql_postgres_user }}"
+    source: "{{ item }}/32"
+    method: md5
+    state: present
+  notify: Restart postgresql service

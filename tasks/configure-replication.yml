@@ -1,0 +1,9 @@
+- name: Setup master
+  ansible.builtin.include_tasks:
+    file: setup-master.yml
+  when: postgresql_db_master_group_name in group_names
+
+- name: Setup replica
+  ansible.builtin.include_tasks:
+    file: setup-replica.yml
+  when: postgresql_db_replicas_group_name in group_names

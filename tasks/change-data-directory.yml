@@ -1,0 +1,30 @@
+- name: Stop postgresql service
+  ansible.builtin.systemd_service:
+    name: "{{ postgresql_systemd_service_name }}"
+    state: stopped
+
+- name: Copy current data to new directory
+  ansible.builtin.copy:
+    src: "{{ __postgresql_current_data_directory }}/"
+    remote_src: true
+    dest: "{{ postgresql_data_directory }}"
+    owner: "{{ postgresql_postgres_user }}"
+    group: "{{ postgresql_postgres_user }}"
+    mode: preserve
+
+- name: Change data directory in postgresql configuration file
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ __postgresql_config_file_path }}"
+    regexp: "^data_directory ="
+    line: "data_directory = '{{ postgresql_data_directory }}'"
+
+- name: Start postgresql service
+  ansible.builtin.systemd_service:
+    name: "{{ postgresql_systemd_service_name }}"
+    state: started
+
+- name: Reset config path variables
+  ansible.builtin.include_tasks:
+    file: set-config-path-variables.yml

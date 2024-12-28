@@ -1,0 +1,63 @@
+---
+# tasks file for postgresql
+- name: Install postgresql packages
+  ansible.builtin.apt:
+    pkg: "{{ postgresql_installing_packages }}"
+    state: present
+    update_cache: true
+
+- name: Install acl apt package # To be able using "become_user: postgres"
+  ansible.builtin.apt:
+    pkg: acl
+    state: present
+
+- name: Install psycopg2 apt package # To be able using community.postgresql tasks
+  ansible.builtin.apt:
+    pkg: python3-psycopg2
+    state: present
+
+- name: Ensure postgresql service is enabled and started
+  ansible.builtin.systemd_service:
+    name: "{{ postgresql_systemd_service_name }}"
+    enabled: true
+    state: started
+
+- name: Set config path variables
+  ansible.builtin.include_tasks:
+    file: set-config-path-variables.yml
+
+- name: Change data directory
+  ansible.builtin.include_tasks:
+    file: change-data-directory.yml
+  when: postgresql_data_directory is defined and postgresql_data_directory != __postgresql_current_data_directory
+
+- name: Add databases and users
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+  block:
+    - name: Add databases
+      community.postgresql.postgresql_db:
+        name: "{{ item }}"
+        state: present
+      when: postgresql_databases is defined
+      with_list: "{{ postgresql_databases }}"
+
+    - name: Add users
+      community.postgresql.postgresql_user:
+        name: "{{ item }}"
+        state: present
+      when: postgresql_users is defined
+      with_list: "{{ postgresql_users }}"
+
+    - name: Change databases owners
+      community.postgresql.postgresql_owner:
+        obj_name: "{{ item.key }}"
+        obj_type: database
+        new_owner: "{{ item.value }}"
+      when: postgresql_db_user_owners_dict is defined
+      with_dict: "{{ postgresql_db_user_owners_dict }}"
+
+- name: Configure streaming replication
+  ansible.builtin.include_tasks:
+    file: configure-replication.yml
+  when: postgresql_db_master_group_name is defined and postgresql_db_replicas_group_name is defined

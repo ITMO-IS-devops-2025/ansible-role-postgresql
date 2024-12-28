@@ -1,0 +1,22 @@
+---
+# defaults file for postgresql
+
+postgresql_installing_packages: postgresql
+postgresql_systemd_service_name: postgresql
+postgresql_postgres_user: postgres
+postgresql_data_directory_mode: "0700"
+
+postgresql_replication_params_for_postgresql_conf_dict:
+  listen_addresses: "localhost, {{ inventory_hostname }}"
+  wal_level: replica
+  archive_mode: "on"
+  archive_command: "cd ."
+  max_wal_senders: 8
+  hot_standby: "on"
+
+# postgresql_data_directory:
+# postgresql_databases:
+# postgresql_users:
+# postgresql_db_user_owners_dict:
+# postgresql_db_master_group_name:
+# postgresql_db_replicas_group_name:

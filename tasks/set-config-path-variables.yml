@@ -1,0 +1,28 @@
+- name: Get paths as postgres user
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+
+  block:
+    - name: Get current data directory
+      community.postgresql.postgresql_query:
+        query: SHOW data_directory;
+      register: __postgresql_current_data_directory_query_result
+
+    - name: Get config file path
+      community.postgresql.postgresql_query:
+        query: SHOW config_file;
+      register: __postgresql_config_file_path_query_result
+
+    - name: Get pg_hba file path
+      community.postgresql.postgresql_query:
+        query: SHOW hba_file;
+      register: __postgresql_pg_hba_file_path_query_result
+
+- name: Set path variables
+  ansible.builtin.set_fact:
+    __postgresql_current_data_directory:
+      "{{ __postgresql_current_data_directory_query_result.query_result[0].data_directory }}"
+    __postgresql_config_file_path:
+      "{{ __postgresql_config_file_path_query_result.query_result[0].config_file }}"
+    __postgresql_pg_hba_file_path:
+      "{{ __postgresql_pg_hba_file_path_query_result.query_result[0].hba_file }}"

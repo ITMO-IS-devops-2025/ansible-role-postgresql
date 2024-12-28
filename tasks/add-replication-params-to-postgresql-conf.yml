@@ -1,0 +1,8 @@
+- name: Add replication parameters in postgresql.conf
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+  community.postgresql.postgresql_set:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_dict: "{{ postgresql_replication_params_for_postgresql_conf_dict }}"
+  notify: Restart postgresql service

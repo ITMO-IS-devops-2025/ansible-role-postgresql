@@ -1,0 +1,46 @@
+- name: Add master ip address to pg_hba for replication
+  ansible.builtin.include_tasks:
+    file: add-replication-ip-to-pg-hba.yml
+  with_list: "{{ groups[postgresql_db_master_group_name] }}"
+
+- name: Add other replicas ip addresses to pg_hba for replication
+  ansible.builtin.include_tasks:
+    file: add-replication-ip-to-pg-hba.yml
+  with_list: "{{ groups[postgresql_db_replicas_group_name] | difference([inventory_hostname]) }}"
+
+- name: Add replication parameters to configuration file
+  ansible.builtin.include_tasks:
+    file: add-replication-params-to-postgresql-conf.yml
+
+- name: Stop postgresql service
+  ansible.builtin.systemd_service:
+    name: "{{ postgresql_systemd_service_name }}"
+    state: stopped
+
+- name: Clear data directory
+  ansible.builtin.file:
+    path: "{{ __postgresql_current_data_directory }}"
+    state: absent
+
+- name: Create data directory
+  ansible.builtin.file:
+    path: "{{ __postgresql_current_data_directory }}"
+    state: directory
+    owner: "{{ postgresql_postgres_user }}"
+    group: "{{ postgresql_postgres_user }}"
+    mode: "{{ postgresql_data_directory_mode }}"
+
+- name: Configure replication from master
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+  ansible.builtin.command:
+    cmd: >
+      /usr/bin/pg_basebackup -P -R -X stream -c fast -D .
+      -d postgresql://postgres:{{ __postgresql_postgres_db_user_password }}@{{ groups[postgresql_db_master_group_name][0] }}
+    chdir: "{{ __postgresql_current_data_directory }}"
+  changed_when: true
+
+- name: Start postgresql service
+  ansible.builtin.systemd_service:
+    name: "{{ postgresql_systemd_service_name }}"
+    state: started
