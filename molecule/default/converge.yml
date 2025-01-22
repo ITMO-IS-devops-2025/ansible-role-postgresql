@@ -2,7 +2,10 @@
 - name: Converge
   hosts: all
   gather_facts: false
+  become: true
+  vars_files:
+    - vars/test_vars.yml
   tasks:
-    - name: Replace this task with one that validates your content
-      ansible.builtin.debug:
-        msg: "This is the effective test"
+    - name: Include role
+      ansible.builtin.include_role:
+        name: ansible-role-postgresql

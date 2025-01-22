@@ -1,4 +1,6 @@
 galaxy_info:
+  role_name: postgresql
+  namespace: itmo-is-devops-2025
   author: Grigorii Simonov
   description: Installs and configures PostgreSQL on Ubuntu.
   company: ITMO IS

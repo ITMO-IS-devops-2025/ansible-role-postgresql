@@ -1,0 +1,14 @@
+---
+# file to define variables for postgresql role in "default" test scenario
+
+postgresql_postgres_user: postgres
+postgresql_data_directory: "/tmp/postgresql/data"
+
+postgresql_databases:
+  - first_db
+  - second_db
+
+postgresql_users:
+  - first_user
+  - second_user
+  - third_user
