@@ -3,6 +3,14 @@
     name: "{{ postgresql_systemd_service_name }}"
     state: stopped
 
+- name: Ensure new directory exists
+  ansible.builtin.file:
+    path: "{{ postgresql_data_directory }}"
+    state: directory
+    owner: "{{ postgresql_postgres_user }}"
+    group: "{{ postgresql_postgres_user }}"
+    mode: "{{ postgresql_data_directory_mode }}"
+
 - name: Copy current data to new directory
   ansible.builtin.copy:
     src: "{{ __postgresql_current_data_directory }}/"
