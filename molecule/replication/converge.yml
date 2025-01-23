@@ -1,0 +1,26 @@
+---
+- name: Converge master
+  hosts: db_master
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Include test vars
+      ansible.builtin.include_vars:
+        file: vars/test_vars.yml
+
+    - name: Include role
+      ansible.builtin.include_role:
+        name: ansible-role-postgresql
+
+- name: Converge replica
+  hosts: db_replicas
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Include test vars
+      ansible.builtin.include_vars:
+        file: vars/test_vars.yml
+
+    - name: Include role
+      ansible.builtin.include_role:
+        name: ansible-role-postgresql

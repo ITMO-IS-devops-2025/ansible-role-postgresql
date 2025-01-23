@@ -1,0 +1,50 @@
+---
+driver:
+  name: docker
+platforms:
+  - name: 192.168.1.100
+    groups:
+      - db_master
+    image: trfore/docker-ubuntu2404-systemd:latest
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    command: /sbin/init
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+    docker_networks:
+      - name: molecule_network
+        ipam_config:
+          - subnet: '192.168.1.0/24'
+    networks:
+      - name: molecule_network
+        ipv4_address: 192.168.1.100
+
+  - name: 192.168.1.101
+    groups:
+      - db_replicas
+    image: trfore/docker-ubuntu2404-systemd:latest
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    command: /sbin/init
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+    networks:
+      - name: molecule_network
+        ipv4_address: 192.168.1.101
+
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - converge
+    - verify
+    - destroy

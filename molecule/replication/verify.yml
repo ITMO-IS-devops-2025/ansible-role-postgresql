@@ -1,0 +1,30 @@
+---
+- name: Add data to master
+  hosts: db_master
+  gather_facts: false
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+  vars_files:
+    - vars/test_vars.yml
+  tasks:
+    - name: Create test table
+      community.postgresql.postgresql_query:
+        query: CREATE TABLE test_table (id INT, name TEXT);
+
+    - name: Insert data into test table
+      community.postgresql.postgresql_query:
+        query: INSERT INTO test_table (id, name) VALUES (1, 'test');
+
+- name: Verify data from master is replicated
+  hosts: db_replicas
+  gather_facts: false
+  become_user: "{{ postgresql_postgres_user }}"
+  become: true
+  vars_files:
+    - vars/test_vars.yml
+  tasks:
+    - name: Verify test table with data is replicated
+      community.postgresql.postgresql_query:
+        query: SELECT * FROM test_table;
+      register: __postgresql_test_tmp_result
+      failed_when: __postgresql_test_tmp_result.query_result[0].name != "test"
